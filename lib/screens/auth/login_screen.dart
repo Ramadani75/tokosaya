@@ -64,13 +64,214 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _showNotRegisteredDialog({required String email, String? name}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_off_rounded, color: AppColors.error, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Belum Mempunyai Akun',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              email.isNotEmpty
+                  ? 'Akun ($email) belum terdaftar di database sistem Toko Saya.'
+                  : 'Akun Anda belum terdaftar di database sistem Toko Saya.',
+              style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.onSurface),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Icon(Icons.info_outline, color: AppColors.error, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Pengguna yang belum mendaftarkan akun tidak dapat masuk. Silakan mendaftar akun baru terlebih dahulu.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF991B1B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RegisterScreen(
+                    prefillEmail: email,
+                    prefillName: name,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.person_add_alt_1, size: 16),
+            label: const Text('Daftar Sekarang'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<Map<String, String>?> _promptGoogleAccountInput(BuildContext context) async {
+    final emailCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    return showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Image.network(
+                    'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                    width: 24,
+                    height: 24,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.blue),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Masuk dengan Akun Google',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Masukkan email akun Google yang sudah terdaftar untuk masuk ke aplikasi.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Alamat Email Google (@gmail.com) *',
+                  hintText: 'nama@gmail.com',
+                  prefixIcon: const Icon(Icons.mail_outline, size: 20),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Email wajib diisi';
+                  if (!v.contains('@')) return 'Format email tidak valid';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    final email = emailCtrl.text.trim();
+                    Navigator.pop(ctx, {
+                      'uid': 'google_${email.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}',
+                      'email': email,
+                      'name': email.split('@').first,
+                      'photoUrl': '',
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Masuk dengan Akun Ini'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleGoogleSignIn() async {
+    // 1. Attempt to get native Google Account details
+    Map<String, String>? googleAccount = await AuthService().getGoogleAccountDetails();
+
+    // 2. If native not supported or canceled, prompt user for Google email
+    if (googleAccount == null) {
+      if (!mounted) return;
+      googleAccount = await _promptGoogleAccountInput(context);
+      if (googleAccount == null) return; // User canceled
+    }
+
     setState(() => _isLoading = true);
     _showLoadingDialog();
 
     try {
       final auth = AuthService();
-      await auth.signInWithGoogle();
+      await auth.signInWithGoogleAccount(
+        email: googleAccount['email']!,
+        name: googleAccount['name'] ?? 'Pengguna Google',
+        uid: googleAccount['uid'] ?? '',
+        photoUrl: googleAccount['photoUrl'],
+      );
 
       _hideLoadingDialog();
       setState(() => _isLoading = false);
@@ -80,6 +281,12 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (_) => const HomeCatalogScreen()),
         );
+      }
+    } on UserNotRegisteredException catch (e) {
+      _hideLoadingDialog();
+      setState(() => _isLoading = false);
+      if (mounted) {
+        _showNotRegisteredDialog(email: e.email, name: e.name);
       }
     } catch (e) {
       _hideLoadingDialog();
@@ -93,13 +300,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleEmailLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final email = _emailController.text.trim();
+
     setState(() => _isLoading = true);
     _showLoadingDialog();
 
     try {
       final auth = AuthService();
       await auth.signInWithEmail(
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text.trim(),
       );
 
@@ -111,6 +320,12 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (_) => const HomeCatalogScreen()),
         );
+      }
+    } on UserNotRegisteredException catch (e) {
+      _hideLoadingDialog();
+      setState(() => _isLoading = false);
+      if (mounted) {
+        _showNotRegisteredDialog(email: e.email);
       }
     } catch (e) {
       _hideLoadingDialog();

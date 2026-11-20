@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/pos_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/product_image.dart';
 import '../receipt/receipt_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -270,17 +271,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    item.product.imageUrl,
+                                  child: ProductImage(
+                                    imageUrl: item.product.imageUrl,
                                     width: 38,
                                     height: 38,
                                     fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      width: 38,
-                                      height: 38,
-                                      color: Colors.grey.shade200,
-                                      child: const Icon(Icons.inventory_2, size: 20, color: Colors.grey),
-                                    ),
+                                    iconSize: 20,
                                   ),
                                 ),
                                 const SizedBox(width: 10),

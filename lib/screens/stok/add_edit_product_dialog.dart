@@ -4,6 +4,7 @@ import '../../models/product.dart';
 import '../../providers/pos_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/barcode_scanner_modal.dart';
+import '../../widgets/product_image.dart';
 
 class AddEditProductDialog extends StatefulWidget {
   final Product? productToEdit;
@@ -39,7 +40,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     'Minuman Dingin',
     'Rokok & Snack',
     'Bumbu & Dapur',
-    'Kebutuhan Rumah Tangga',
+    'Kebutuhan Umum',
   ];
 
   final List<String> _unitOptions = [
@@ -50,10 +51,23 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     'botol',
     'karung',
     'renceng',
+    'pouch',
   ];
 
   // Presets image catalog
   final List<Map<String, String>> _presetPhotos = [
+    {
+      'title': 'Bimoli 2L',
+      'url': 'assets/images/minyak_bimoli.jpg',
+    },
+    {
+      'title': 'Teh Pucuk',
+      'url': 'assets/images/teh_pucuk.webp',
+    },
+    {
+      'title': 'Le Minerale',
+      'url': 'assets/images/le_minerale.jpg',
+    },
     {
       'title': 'Beras 5kg',
       'url':
@@ -65,11 +79,6 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
           'https://lh3.googleusercontent.com/aida-public/AB6AXuCisGrUH6sWBodj1AXT4XF-3E_MLTdfADhPgglwgipPxPumvqSIlHTGJjRz8cFYkMC47mL3VtCgn4C5vRP0bDr94sBT0vUPdlCyp8gKphbFQu3QvGwT_AtbWttdzAGWa7FHRvcivU0LZhEQ2MvRV8GMLTzEZuvw-pdWhUIeMQ6tURuNpRZo_jnuHg4_K-sJluR6F1ZjX1xaWy4gIuXY4yhXwonbv6sfp4EAGmxOFCQ',
     },
     {
-      'title': 'Minyak Pouch',
-      'url':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCsr-kz-Ft7hJ4HszOoUAY5Pf3ozooAI1meMBhZYRd9mGvoRBW417pJEIZPB21V5Bdt2_Odb_ILZtDhxIrH6KBUmBEjuyW2GTAqzJR_iTnJ7Mhqk3akUdg09ttfNZJPiBeg6i2z9k8O4os8Vh1HEFMQh5MgpeDdFpo6WG__wQsZ1rBwDBgusHA-PSGXJf621p6slBBEZamGQEKb2Kqaw6ruwKF8X7nVM4WxzVbMHVo',
-    },
-    {
       'title': 'Chitato',
       'url':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuCDo04YPSIdFJrVxc-I2Fkk9nLhTVRRa4vYuw8r8HyLhZEY9LHAV3NNRS7jnYnNOt2trCfyIJh2OF5Sf2ga7UC8wQGq1o7Yvs3k10wiM7-sJd1za4KxfjhRjOlGzmOVrwhSpH9rQuqyW9GBfo5Ucy9OddJdj_UvwhF5R0Hhj0x5SEzx8mY8O1mj2TuEh75Pe070MP_6HNnKMSXhKw0tqMHXl-mJEKu6uIvDzXEJ1VA',
@@ -78,11 +87,6 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       'title': 'Djarum Super',
       'url':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuA9uTrasiKZLgJJL8tZE61U5c87krPLPAZnP_Q2ut9jLrJaLO8j4LWVQxBmYTfy0pidiWBD6_mdefm7NYYwHAHO4tofgxv-EANi32oDLkQUv01wPWF_UH61szEJdaGhoEbCHju8flDg4Tjuoy9xmktTN6mFF8YOoTA1vIe3O1xjRuZYKEgFlcNKB8afLFcITscdQs4M7j7EMfqzC19He6HR5IYRh6swf_yxuxXjKaY',
-    },
-    {
-      'title': 'Teh Botol',
-      'url':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDzzfDzzc7d0ZNdiQnKOVE5zpeyTcca9OGHGGMJ9FkuxfS0Ztbn7n_BAiFz0eyEThu_bIMw-we2CMo7wC9lKVCdbgrxpdBz-pYTDunHblrjg-KiWnkBfIXIq36GbJZreiOcIceHfZeevh2UDKhXVo4fyM3gvkJ3BCmTM-4E-knLP_BT2BATstiQbfLlXLKg39Zh7cMh34CNXbhL7nIEbNTKNpLTOGIoLxAht1dfjIQ',
     },
     {
       'title': 'Kopi Renceng',
@@ -245,13 +249,12 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              item['url']!,
+                            child: ProductImage(
+                              imageUrl: item['url']!,
                               width: 78,
                               height: 60,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.image, size: 24, color: Colors.grey),
+                              iconSize: 24,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -433,10 +436,10 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                                 ),
                                 clipBehavior: Clip.antiAlias,
                                 child: _imageUrlCtrl.text.isNotEmpty
-                                    ? Image.network(
-                                        _imageUrlCtrl.text,
+                                    ? ProductImage(
+                                        imageUrl: _imageUrlCtrl.text,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _buildEmptyPhotoThumb(),
+                                        iconSize: 28,
                                       )
                                     : _buildEmptyPhotoThumb(),
                               ),

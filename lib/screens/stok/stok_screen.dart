@@ -5,6 +5,7 @@ import '../../models/product.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/barcode_scanner_modal.dart';
+import '../../widgets/product_image.dart';
 import 'add_edit_product_dialog.dart';
 
 class StokScreen extends StatefulWidget {
@@ -114,9 +115,11 @@ class _StokScreenState extends State<StokScreen> {
     // Apply local filter tab
     List<Product> displayList = pos.products.where((p) {
       if (_activeFilter == 'critical') return p.isCriticalStock;
-      if (_activeFilter == 'sembako') return p.category.contains('Sembako');
-      if (_activeFilter == 'minuman') return p.category.contains('Minuman');
-      if (_activeFilter == 'rokok') return p.category.contains('Rokok');
+      if (_activeFilter == 'sembako') return p.category.toLowerCase().contains('sembako');
+      if (_activeFilter == 'minuman') return p.category.toLowerCase().contains('minuman');
+      if (_activeFilter == 'rokok') return p.category.toLowerCase().contains('rokok');
+      if (_activeFilter == 'bumbu') return p.category.toLowerCase().contains('bumbu');
+      if (_activeFilter == 'umum') return p.category.toLowerCase().contains('umum');
       return true;
     }).toList();
 
@@ -124,6 +127,7 @@ class _StokScreenState extends State<StokScreen> {
       final q = _searchCtrl.text.toLowerCase().trim();
       displayList = displayList.where((p) {
         return p.name.toLowerCase().contains(q) ||
+            p.category.toLowerCase().contains(q) ||
             p.barcode.toLowerCase().contains(q) ||
             p.supplier.toLowerCase().contains(q);
       }).toList();
@@ -501,11 +505,15 @@ class _StokScreenState extends State<StokScreen> {
                 const SizedBox(width: 8),
                 _buildFilterPill('critical', 'Kritis (${pos.criticalStockProducts.length})', Icons.error_outline, isError: true),
                 const SizedBox(width: 8),
-                _buildFilterPill('sembako', 'Sembako', Icons.rice_bowl),
+                _buildFilterPill('sembako', 'Sembako & Beras', Icons.rice_bowl),
                 const SizedBox(width: 8),
-                _buildFilterPill('minuman', 'Minuman', Icons.local_drink),
+                _buildFilterPill('minuman', 'Minuman Dingin', Icons.local_drink),
                 const SizedBox(width: 8),
                 _buildFilterPill('rokok', 'Rokok & Snack', Icons.cookie),
+                const SizedBox(width: 8),
+                _buildFilterPill('bumbu', 'Bumbu & Dapur', Icons.kitchen),
+                const SizedBox(width: 8),
+                _buildFilterPill('umum', 'Kebutuhan Umum', Icons.shopping_basket),
               ],
             ),
           ),
@@ -638,17 +646,12 @@ class _StokScreenState extends State<StokScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            product.imageUrl,
+                          child: ProductImage(
+                            imageUrl: product.imageUrl,
                             width: 44,
                             height: 44,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 44,
-                              height: 44,
-                              color: Colors.grey.shade200,
-                              child: const Icon(Icons.inventory_2, color: Colors.grey, size: 22),
-                            ),
+                            iconSize: 22,
                           ),
                         ),
                         const SizedBox(width: 10),

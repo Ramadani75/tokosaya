@@ -57,20 +57,42 @@ class PosProvider extends ChangeNotifier {
     'Minuman Dingin',
     'Rokok & Snack',
     'Bumbu & Dapur',
+    'Kebutuhan Umum',
   ];
 
   // Filtered Products
   List<Product> get filteredProducts {
+    final q = _searchQuery.toLowerCase().trim();
     return _products.where((p) {
-      final matchesCategory =
-          _selectedCategory == 'Semua' || p.category == _selectedCategory;
-      final q = _searchQuery.toLowerCase().trim();
       final matchesQuery = q.isEmpty ||
           p.name.toLowerCase().contains(q) ||
           p.category.toLowerCase().contains(q) ||
           p.barcode.toLowerCase().contains(q) ||
           p.supplier.toLowerCase().contains(q);
-      return matchesCategory && matchesQuery;
+
+      if (!matchesQuery) return false;
+
+      if (_selectedCategory == 'Semua') return true;
+
+      // If search query is empty, strictly filter by selected category
+      if (q.isEmpty) {
+        return p.category == _selectedCategory;
+      }
+
+      // If searching with text, check if selected category has matching products
+      final hasMatchInSelected = _products.any((item) =>
+          item.category == _selectedCategory &&
+          (item.name.toLowerCase().contains(q) ||
+              item.category.toLowerCase().contains(q) ||
+              item.barcode.toLowerCase().contains(q) ||
+              item.supplier.toLowerCase().contains(q)));
+
+      if (hasMatchInSelected) {
+        return p.category == _selectedCategory;
+      }
+
+      // If no matching product in selected category, display results across all categories
+      return true;
     }).toList();
   }
 
@@ -123,6 +145,7 @@ class PosProvider extends ChangeNotifier {
         final List<dynamic> list = jsonDecode(productsStr);
         _products = list.map((e) => Product.fromJson(e)).toList();
         _ensureSampleCriticalProducts();
+        _syncDefaultProducts();
       } catch (_) {
         _loadDefaultProducts();
       }
@@ -144,6 +167,146 @@ class PosProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void _syncDefaultProducts() {
+    bool changed = false;
+    for (int i = 0; i < _products.length; i++) {
+      final p = _products[i];
+      final lowerName = p.name.toLowerCase();
+
+      // 1. Teh Pucuk Harum -> Image assets/images/teh_pucuk.webp, Category Minuman Dingin
+      if (lowerName.contains('teh pucuk')) {
+        if (p.imageUrl != 'assets/images/teh_pucuk.webp' || p.category != 'Minuman Dingin') {
+          _products[i] = p.copyWith(
+            imageUrl: 'assets/images/teh_pucuk.webp',
+            category: 'Minuman Dingin',
+          );
+          changed = true;
+        }
+      }
+      // 2. Le Minerale -> Image assets/images/le_minerale.jpg, Category Minuman Dingin
+      else if (lowerName.contains('le minerale')) {
+        if (p.imageUrl != 'assets/images/le_minerale.jpg' || p.category != 'Minuman Dingin') {
+          _products[i] = p.copyWith(
+            imageUrl: 'assets/images/le_minerale.jpg',
+            category: 'Minuman Dingin',
+          );
+          changed = true;
+        }
+      }
+      // 3. Minyak Bimoli -> Image assets/images/minyak_bimoli.jpg, Category Sembako & Beras
+      else if (lowerName.contains('bimoli')) {
+        if (p.imageUrl != 'assets/images/minyak_bimoli.jpg' || p.category != 'Sembako & Beras') {
+          _products[i] = p.copyWith(
+            imageUrl: 'assets/images/minyak_bimoli.jpg',
+            category: 'Sembako & Beras',
+          );
+          changed = true;
+        }
+      }
+      // 4. Indomie -> Move from Sembako to Rokok & Snack (keep Sembako strictly sembako & beras)
+      else if (lowerName.contains('indomie')) {
+        if (p.category == 'Sembako & Beras') {
+          _products[i] = p.copyWith(category: 'Rokok & Snack');
+          changed = true;
+        }
+      }
+      // 5. Kopi Kapal Api -> Category Minuman Dingin
+      else if (lowerName.contains('kapal api')) {
+        if (p.category != 'Minuman Dingin') {
+          _products[i] = p.copyWith(category: 'Minuman Dingin');
+          changed = true;
+        }
+      }
+      // 6. Bensin Pertalite -> Category Kebutuhan Umum
+      else if (lowerName.contains('pertalite') || lowerName.contains('bensin')) {
+        if (p.category != 'Kebutuhan Umum') {
+          _products[i] = p.copyWith(category: 'Kebutuhan Umum');
+          changed = true;
+        }
+      }
+    }
+
+    // Ensure essential Bumbu & Dapur exist
+    if (!_products.any((p) => p.name.contains('Kecap Manis Bango'))) {
+      _products.add(
+        Product(
+          id: '006021',
+          name: 'Kecap Manis Bango 520ml',
+          barcode: '8996006021',
+          category: 'Bumbu & Dapur',
+          unit: 'pouch',
+          costPrice: 22000,
+          sellPrice: 25000,
+          stock: 12,
+          minStockAlert: 5,
+          imageUrl: '',
+          supplier: 'Unilever Indonesia',
+        ),
+      );
+      changed = true;
+    }
+    if (!_products.any((p) => p.name.contains('Royco'))) {
+      _products.add(
+        Product(
+          id: '006022',
+          name: 'Royco Pelezat Rasa Sapi 100g',
+          barcode: '8996006022',
+          category: 'Bumbu & Dapur',
+          unit: 'bks',
+          costPrice: 4500,
+          sellPrice: 5500,
+          stock: 22,
+          minStockAlert: 5,
+          imageUrl: '',
+          supplier: 'Unilever Indonesia',
+        ),
+      );
+      changed = true;
+    }
+    if (!_products.any((p) => p.name.contains('Garam Dapur Cap Kapal'))) {
+      _products.add(
+        Product(
+          id: '006020',
+          name: 'Garam Dapur Cap Kapal 250g',
+          barcode: '8996006020',
+          category: 'Bumbu & Dapur',
+          unit: 'bks',
+          costPrice: 2000,
+          sellPrice: 3000,
+          stock: 28,
+          minStockAlert: 5,
+          imageUrl: '',
+          supplier: 'Garamindo Utama',
+        ),
+      );
+      changed = true;
+    }
+
+    // Ensure essential Sembako exists (Gula Pasir)
+    if (!_products.any((p) => p.name.contains('Gulaku') || p.name.contains('Gula Pasir'))) {
+      _products.add(
+        Product(
+          id: '001035',
+          name: 'Gula Pasir Gulaku 1kg',
+          barcode: '8991001035',
+          category: 'Sembako & Beras',
+          unit: 'kg',
+          costPrice: 15500,
+          sellPrice: 17500,
+          stock: 18,
+          minStockAlert: 5,
+          imageUrl: '',
+          supplier: 'Sugar Group Companies',
+        ),
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      _saveProducts();
+    }
   }
 
   void _ensureSampleCriticalProducts() {
@@ -248,6 +411,32 @@ class PosProvider extends ChangeNotifier {
         supplier: 'Bulog Retail',
       ),
       Product(
+        id: '002011',
+        name: 'Minyak Goreng Bimoli 2L',
+        barcode: '8992002011',
+        category: 'Sembako & Beras',
+        unit: 'pouch',
+        costPrice: 32000,
+        sellPrice: 36000,
+        stock: 9,
+        minStockAlert: 5,
+        imageUrl: 'assets/images/minyak_bimoli.jpg',
+        supplier: 'Salim Ivomas Pratama',
+      ),
+      Product(
+        id: '001035',
+        name: 'Gula Pasir Gulaku 1kg',
+        barcode: '8991001035',
+        category: 'Sembako & Beras',
+        unit: 'kg',
+        costPrice: 15500,
+        sellPrice: 17500,
+        stock: 18,
+        minStockAlert: 5,
+        imageUrl: '',
+        supplier: 'Sugar Group Companies',
+      ),
+      Product(
         id: '330014',
         name: 'Chitato Sapi Panggang 68g',
         barcode: '8993300140',
@@ -276,18 +465,18 @@ class PosProvider extends ChangeNotifier {
         supplier: 'PT Djarum Kudus',
       ),
       Product(
-        id: '002011',
-        name: 'Minyak Goreng Bimoli 2L',
-        barcode: '8992002011',
-        category: 'Sembako & Beras',
-        unit: 'pouch',
-        costPrice: 32000,
-        sellPrice: 36000,
-        stock: 9,
-        minStockAlert: 5,
+        id: '005011',
+        name: 'Indomie Goreng Spesial',
+        barcode: '8995005011',
+        category: 'Rokok & Snack',
+        unit: 'bks',
+        costPrice: 2900,
+        sellPrice: 3500,
+        stock: 65,
+        minStockAlert: 20,
         imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuCsr-kz-Ft7hJ4HszOoUAY5Pf3ozooAI1meMBhZYRd9mGvoRBW417pJEIZPB21V5Bdt2_Odb_ILZtDhxIrH6KBUmBEjuyW2GTAqzJR_iTnJ7Mhqk3akUdg09ttfNZJPiBeg6i2z9k8O4os8Vh1HEFMQh5MgpeDdFpo6WG__wQsZ1rBwDBgusHA-PSGXJf621p6slBBEZamGQEKb2Kqaw6ruwKF8X7nVM4WxzVbMHVo',
-        supplier: 'Salim Ivomas Pratama',
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuBRuZErQZsElhZ5HtVYLV_X3So2wxG_xhwG_Qa5zmIw7Ed0QXxEkZ4edxASXVWQ-d3bfO1wkY9ZfJS4KJYf5CXUqupvEKCTMbGI378wYusr9pd3fuXPyg6x0-pWzfagiR-EKI9JDNl8528NFzXXQO2X2QQucGIkM2G9UQfY6aBNb7KsQniLeYQgxhjVMvontRcE9F4djP6hyQjjhWDV8LEEiUE6yfhuGns3jNuG8c8',
+        supplier: 'Indofood Sukses Makmur',
       ),
       Product(
         id: '004011',
@@ -299,8 +488,7 @@ class PosProvider extends ChangeNotifier {
         sellPrice: 4000,
         stock: 36,
         minStockAlert: 10,
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDzzfDzzc7d0ZNdiQnKOVE5zpeyTcca9OGHGGMJ9FkuxfS0Ztbn7n_BAiFz0eyEThu_bIMw-we2CMo7wC9lKVCdbgrxpdBz-pYTDunHblrjg-KiWnkBfIXIq36GbJZreiOcIceHfZeevh2UDKhXVo4fyM3gvkJ3BCmTM-4E-knLP_BT2BATstiQbfLlXLKg39Zh7cMh34CNXbhL7nIEbNTKNpLTOGIoLxAht1dfjIQ',
+        imageUrl: 'assets/images/teh_pucuk.webp',
         supplier: 'Mayora Beverages',
       ),
       Product(
@@ -313,29 +501,14 @@ class PosProvider extends ChangeNotifier {
         sellPrice: 3500,
         stock: 48,
         minStockAlert: 12,
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuCsr-kz-Ft7hJ4HszOoUAY5Pf3ozooAI1meMBhZYRd9mGvoRBW417pJEIZPB21V5Bdt2_Odb_ILZtDhxIrH6KBUmBEjuyW2GTAqzJR_iTnJ7Mhqk3akUdg09ttfNZJPiBeg6i2z9k8O4os8Vh1HEFMQh5MgpeDdFpo6WG__wQsZ1rBwDBgusHA-PSGXJf621p6slBBEZamGQEKb2Kqaw6ruwKF8X7nVM4WxzVbMHVo',
+        imageUrl: 'assets/images/le_minerale.jpg',
         supplier: 'Mayora Beverages',
-      ),
-      Product(
-        id: '005011',
-        name: 'Indomie Goreng Spesial',
-        barcode: '8995005011',
-        category: 'Sembako & Beras',
-        unit: 'bks',
-        costPrice: 2900,
-        sellPrice: 3500,
-        stock: 65,
-        minStockAlert: 20,
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBRuZErQZsElhZ5HtVYLV_X3So2wxG_xhwG_Qa5zmIw7Ed0QXxEkZ4edxASXVWQ-d3bfO1wkY9ZfJS4KJYf5CXUqupvEKCTMbGI378wYusr9pd3fuXPyg6x0-pWzfagiR-EKI9JDNl8528NFzXXQO2X2QQucGIkM2G9UQfY6aBNb7KsQniLeYQgxhjVMvontRcE9F4djP6hyQjjhWDV8LEEiUE6yfhuGns3jNuG8c8',
-        supplier: 'Indofood Sukses Makmur',
       ),
       Product(
         id: '006011',
         name: 'Kopi Kapal Api Special Mix',
         barcode: '8996006011',
-        category: 'Bumbu & Dapur',
+        category: 'Minuman Dingin',
         unit: 'renceng',
         costPrice: 11800,
         sellPrice: 14000,
@@ -344,6 +517,45 @@ class PosProvider extends ChangeNotifier {
         imageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuCHN4aT5DLEiqzP1qkJjxER2olYxxp1eF-VtMjoThvJBUpfZcKkVEnvmwsgv4FJJq4fE6CaRoF9UuB03Y74KpdXLCL22IqDDmW6Oy7pZj_FnU5gRMCmqiDcplpAkveihBtWNARIYyQTkkit8X2YpdGJIemyil_36zFkGT14_e6wliIv0c6fvyBAU_lD71_3_RbJ60VUCLVQKW81pddLpB8Q7ZJuibp6IyBmD7t6YHQ',
         supplier: 'Santos Jaya Abadi',
+      ),
+      Product(
+        id: '006020',
+        name: 'Garam Dapur Cap Kapal 250g',
+        barcode: '8996006020',
+        category: 'Bumbu & Dapur',
+        unit: 'bks',
+        costPrice: 2000,
+        sellPrice: 3000,
+        stock: 28,
+        minStockAlert: 5,
+        imageUrl: '',
+        supplier: 'Garamindo Utama',
+      ),
+      Product(
+        id: '006021',
+        name: 'Kecap Manis Bango 520ml',
+        barcode: '8996006021',
+        category: 'Bumbu & Dapur',
+        unit: 'pouch',
+        costPrice: 22000,
+        sellPrice: 25000,
+        stock: 12,
+        minStockAlert: 5,
+        imageUrl: '',
+        supplier: 'Unilever Indonesia',
+      ),
+      Product(
+        id: '006022',
+        name: 'Royco Pelezat Rasa Sapi 100g',
+        barcode: '8996006022',
+        category: 'Bumbu & Dapur',
+        unit: 'bks',
+        costPrice: 4500,
+        sellPrice: 5500,
+        stock: 22,
+        minStockAlert: 5,
+        imageUrl: '',
+        supplier: 'Unilever Indonesia',
       ),
     ];
     _saveProducts();

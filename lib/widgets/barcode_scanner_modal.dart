@@ -4,6 +4,7 @@ import '../providers/pos_provider.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
+import 'product_image.dart';
 
 class BarcodeScannerModal extends StatefulWidget {
   const BarcodeScannerModal({super.key});
@@ -253,17 +254,12 @@ class _BarcodeScannerModalState extends State<BarcodeScannerModal>
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      _foundProduct!.imageUrl,
+                    child: ProductImage(
+                      imageUrl: _foundProduct!.imageUrl,
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 48,
-                        height: 48,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.inventory_2, color: Colors.grey),
-                      ),
+                      iconSize: 24,
                     ),
                   ),
                   const SizedBox(width: 12),

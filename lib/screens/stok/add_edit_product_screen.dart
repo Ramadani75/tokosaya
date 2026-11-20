@@ -5,6 +5,7 @@ import '../../models/product.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/barcode_scanner_modal.dart';
+import '../../widgets/product_image.dart';
 
 class AddEditProductScreen extends StatefulWidget {
   final Product? productToEdit;
@@ -37,11 +38,23 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     'Minuman Dingin',
     'Rokok & Snack',
     'Bumbu & Dapur',
-    'Kebutuhan Rumah Tangga',
+    'Kebutuhan Umum',
   ];
 
   // Presets image catalog for quick selection
   final List<Map<String, String>> _presetPhotos = [
+    {
+      'title': 'Bimoli 2L',
+      'url': 'assets/images/minyak_bimoli.jpg',
+    },
+    {
+      'title': 'Teh Pucuk',
+      'url': 'assets/images/teh_pucuk.webp',
+    },
+    {
+      'title': 'Le Minerale',
+      'url': 'assets/images/le_minerale.jpg',
+    },
     {
       'title': 'Beras 5kg',
       'url':
@@ -53,11 +66,6 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           'https://lh3.googleusercontent.com/aida-public/AB6AXuCisGrUH6sWBodj1AXT4XF-3E_MLTdfADhPgglwgipPxPumvqSIlHTGJjRz8cFYkMC47mL3VtCgn4C5vRP0bDr94sBT0vUPdlCyp8gKphbFQu3QvGwT_AtbWttdzAGWa7FHRvcivU0LZhEQ2MvRV8GMLTzEZuvw-pdWhUIeMQ6tURuNpRZo_jnuHg4_K-sJluR6F1ZjX1xaWy4gIuXY4yhXwonbv6sfp4EAGmxOFCQ',
     },
     {
-      'title': 'Minyak Pouch',
-      'url':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCsr-kz-Ft7hJ4HszOoUAY5Pf3ozooAI1meMBhZYRd9mGvoRBW417pJEIZPB21V5Bdt2_Odb_ILZtDhxIrH6KBUmBEjuyW2GTAqzJR_iTnJ7Mhqk3akUdg09ttfNZJPiBeg6i2z9k8O4os8Vh1HEFMQh5MgpeDdFpo6WG__wQsZ1rBwDBgusHA-PSGXJf621p6slBBEZamGQEKb2Kqaw6ruwKF8X7nVM4WxzVbMHVo',
-    },
-    {
       'title': 'Snack Chitato',
       'url':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuCDo04YPSIdFJrVxc-I2Fkk9nLhTVRRa4vYuw8r8HyLhZEY9LHAV3NNRS7jnYnNOt2trCfyIJh2OF5Sf2ga7UC8wQGq1o7Yvs3k10wiM7-sJd1za4KxfjhRjOlGzmOVrwhSpH9rQuqyW9GBfo5Ucy9OddJdj_UvwhF5R0Hhj0x5SEzx8mY8O1mj2TuEh75Pe070MP_6HNnKMSXhKw0tqMHXl-mJEKu6uIvDzXEJ1VA',
@@ -66,11 +74,6 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       'title': 'Rokok Djarum',
       'url':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuA9uTrasiKZLgJJL8tZE61U5c87krPLPAZnP_Q2ut9jLrJaLO8j4LWVQxBmYTfy0pidiWBD6_mdefm7NYYwHAHO4tofgxv-EANi32oDLkQUv01wPWF_UH61szEJdaGhoEbCHju8flDg4Tjuoy9xmktTN6mFF8YOoTA1vIe3O1xjRuZYKEgFlcNKB8afLFcITscdQs4M7j7EMfqzC19He6HR5IYRh6swf_yxuxXjKaY',
-    },
-    {
-      'title': 'Minuman Dingin',
-      'url':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDzzfDzzc7d0ZNdiQnKOVE5zpeyTcca9OGHGGMJ9FkuxfS0Ztbn7n_BAiFz0eyEThu_bIMw-we2CMo7wC9lKVCdbgrxpdBz-pYTDunHblrjg-KiWnkBfIXIq36GbJZreiOcIceHfZeevh2UDKhXVo4fyM3gvkJ3BCmTM-4E-knLP_BT2BATstiQbfLlXLKg39Zh7cMh34CNXbhL7nIEbNTKNpLTOGIoLxAht1dfjIQ',
     },
     {
       'title': 'Kopi Renceng',
@@ -283,13 +286,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                             ),
                             clipBehavior: Clip.antiAlias,
                             child: _imageUrlController.text.isNotEmpty
-                                ? Image.network(
-                                    _imageUrlController.text,
+                                ? ProductImage(
+                                    imageUrl: _imageUrlController.text,
                                     fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Center(
-                                      child: Icon(Icons.broken_image,
-                                          size: 40, color: Colors.grey),
-                                    ),
+                                    iconSize: 36,
                                   )
                                 : const Center(
                                     child: Column(
@@ -393,13 +393,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                                   Expanded(
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        item['url']!,
+                                      child: ProductImage(
+                                        imageUrl: item['url']!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
-                                            Icons.image,
-                                            size: 20,
-                                            color: Colors.grey),
+                                        iconSize: 20,
                                       ),
                                     ),
                                   ),

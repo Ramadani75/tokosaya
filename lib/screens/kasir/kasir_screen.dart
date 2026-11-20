@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/barcode_scanner_modal.dart';
 import '../../widgets/stock_alert_bottom_sheet.dart';
+import '../../widgets/product_image.dart';
 import '../checkout/checkout_screen.dart';
 
 class KasirScreen extends StatefulWidget {
@@ -296,6 +297,9 @@ class _KasirScreenState extends State<KasirScreen> {
                       case 'Bumbu & Dapur':
                         icon = Icons.kitchen;
                         break;
+                      case 'Kebutuhan Umum':
+                        icon = Icons.shopping_basket;
+                        break;
                       default:
                         icon = Icons.inventory_2;
                     }
@@ -538,12 +542,10 @@ class _KasirScreenState extends State<KasirScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    product.imageUrl,
+                  child: ProductImage(
+                    imageUrl: product.imageUrl,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Center(
-                      child: Icon(Icons.inventory_2, color: Colors.grey.shade400, size: 36),
-                    ),
+                    iconSize: 36,
                   ),
                 ),
                 // Stock pill badge
